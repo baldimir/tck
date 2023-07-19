@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.bind.JAXBException;
 
@@ -69,8 +70,8 @@ public class DmnTckRunner
             String parent = tcfile.getParent();
             modelURL = new File( parent != null ? parent + "/" + tcd.getModelName() : tcd.getModelName() ).toURI().toURL();
             if (Paths.get(parent) != null) {
-                try {
-                    List<File> allDMNFiles = Files.walk(Paths.get(parent))
+                try (Stream<Path> pathStream = Files.walk(Paths.get(parent))) {
+                    List<File> allDMNFiles = pathStream
                                                   .map(Path::toFile)
                                                   .filter(File::isFile)
                                                   .filter(f -> f.getName().endsWith(".dmn"))
@@ -96,16 +97,8 @@ public class DmnTckRunner
                 children.put( test, testDescr );
                 this.descr.addChild( testDescr );
             }
-            File results = new File( vendorSuite.getResultFileName() );
-            if ( results.exists() ) {
-                results.delete();
-            }
-        } catch ( FileNotFoundException e ) {
-            e.printStackTrace();
-        } catch ( JAXBException e ) {
-            e.printStackTrace();
-        } catch ( MalformedURLException e ) {
-            e.printStackTrace();
+        } catch (FileNotFoundException | JAXBException | MalformedURLException e) {
+            throw new InitializationError(e);
         }
     }
 
@@ -124,9 +117,9 @@ public class DmnTckRunner
     @Override
     public void run(RunNotifier notifier) {
         try {
-			String resultFilePath = vendorSuite.getResultFileName();
-			if (resultFilePath != null) {
-				resultFile = new FileWriter(resultFilePath, true);
+			File resultsFile = vendorSuite.getVendorResultFiles().getVendorResultsFile();
+			if (resultsFile != null) {
+				resultFile = new FileWriter(resultsFile, true);
 			} else {
 				logger.error("Result file path is null. Skipping result file generation.");
 			}

@@ -4,9 +4,16 @@
   <artifactId>tck-runner-drools</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <name>DMN :: TCK :: jUnit Runner :: Drools</name>
+  
   <properties>
     <drools.version>8.40.0.Final</drools.version>
+    <vendor.name>KIE</vendor.name>
+    <vendor.url>https://www.kie.org</vendor.url>
+    <product.name>Drools</product.name>
+    <product.url>https://www.drools.org</product.url>
+    <product.comment>Drools provides a compliance level 3 runtime DMN engine</product.comment>
   </properties>
+
   <repositories>
     <repository>
       <id>jboss-public-repository-group</id>
@@ -23,6 +30,7 @@
       </snapshots>
     </repository>
   </repositories>
+  
   <dependencies>
     <dependency>
       <groupId>org.omg.dmn</groupId>
@@ -64,6 +72,7 @@
       <version>${drools.version}</version>
     </dependency>
   </dependencies>
+
   <build>
     <resources>
       <resource>
@@ -95,6 +104,7 @@
       </plugin>
     </plugins>
   </build>
+
   <profiles>
     <profile>
       <id>add-jdk9plus-dependencies</id>

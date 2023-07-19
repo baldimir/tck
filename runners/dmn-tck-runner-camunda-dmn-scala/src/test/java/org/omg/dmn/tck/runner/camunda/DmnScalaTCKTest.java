@@ -54,6 +54,7 @@ import org.omg.dmn.tck.marshaller._20160719.ValueType;
 import org.omg.dmn.tck.marshaller._20160719.ValueType.Component;
 import org.omg.dmn.tck.runner.junit4.DmnTckSuite;
 import org.omg.dmn.tck.runner.junit4.DmnTckVendorTestSuite;
+import org.omg.dmn.tck.runner.junit4.ResultFiles;
 import org.omg.dmn.tck.runner.junit4.TestResult;
 import org.omg.dmn.tck.runner.junit4.TestResult.Result;
 import org.omg.dmn.tck.runner.junit4.TestSuiteContext;
@@ -173,12 +174,15 @@ public class DmnScalaTCKTest implements DmnTckVendorTestSuite {
 	}
 
 	@Override
-	public String getResultFileName() {
-		final String version = DmnEngine.class.getPackage().getImplementationVersion();
-		String resultDirectory = "../../TestResults/CamundaDmnScala/" + version;
-		new File(resultDirectory).mkdirs();
-		return resultDirectory + "/" + DmnTckVendorTestSuite.super.getResultFileName();
-	}
+	public ResultFiles getVendorResultFiles() {
+        return new ResultFiles(DmnEngine.class.getPackage().getImplementationVersion(), 
+            "Camunda DMN-Scala Extension", 
+            "https://github.com/camunda-community-hub/dmn-scala", 
+            "A community extension for the Camunda Platform to evaluate DMN decisions based on Camunda's FEEL engine.", 
+            "Camunda", 
+            "http://camunda.com",
+            "https://github.com/dmn-tck/tck/blob/master/runners/dmn-tck-runner-camunda-dmn-scala/");
+    }
 
 	private TestResult evaluate(
 			final TestRunnerContext ctx, final Map<String, Object> inputVariables, final ResultNode result) {

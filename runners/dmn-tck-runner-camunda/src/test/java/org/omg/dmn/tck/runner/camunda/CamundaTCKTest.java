@@ -52,6 +52,7 @@ import org.omg.dmn.tck.marshaller._20160719.ValueType;
 import org.omg.dmn.tck.marshaller._20160719.ValueType.Component;
 import org.omg.dmn.tck.runner.junit4.DmnTckSuite;
 import org.omg.dmn.tck.runner.junit4.DmnTckVendorTestSuite;
+import org.omg.dmn.tck.runner.junit4.ResultFiles;
 import org.omg.dmn.tck.runner.junit4.TestResult;
 import org.omg.dmn.tck.runner.junit4.TestResult.Result;
 import org.omg.dmn.tck.runner.junit4.TestSuiteContext;
@@ -167,12 +168,15 @@ public class CamundaTCKTest implements DmnTckVendorTestSuite {
 	}
 
 	@Override
-	public String getResultFileName() {
-		final String version = DmnEngine.class.getPackage().getImplementationVersion();
-		String resultDirectory = "../../TestResults/Camunda/" + version;
-		new File(resultDirectory).mkdirs();
-		return resultDirectory + "/" + DmnTckVendorTestSuite.super.getResultFileName();
-	}
+	public ResultFiles getVendorResultFiles() {
+        return new ResultFiles(DmnEngine.class.getPackage().getImplementationVersion(), 
+            "Camunda Platform", 
+            "http://camunda.com/products/", 
+            "Camunda Platform provides an Open Source engine that integrates DMN with BPMN & CMMN.", 
+            "Camunda", 
+            "http://camunda.com",
+            "https://github.com/dmn-tck/tck/blob/master/runners/dmn-tck-runner-camunda/");
+    }
 
 	private TestResult evaluate(
 			final CamundaContext ctx, final Map<String, Object> inputVariables, final ResultNode result) {

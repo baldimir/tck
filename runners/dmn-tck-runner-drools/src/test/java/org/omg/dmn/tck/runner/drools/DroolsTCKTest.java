@@ -15,12 +15,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -77,6 +75,7 @@ import org.omg.dmn.tck.marshaller._20160719.TestCases;
 import org.omg.dmn.tck.marshaller._20160719.ValueType;
 import org.omg.dmn.tck.runner.junit4.DmnTckSuite;
 import org.omg.dmn.tck.runner.junit4.DmnTckVendorTestSuite;
+import org.omg.dmn.tck.runner.junit4.ResultFiles;
 import org.omg.dmn.tck.runner.junit4.TestResult;
 import org.omg.dmn.tck.runner.junit4.TestSuiteContext;
 import org.slf4j.Logger;
@@ -159,40 +158,6 @@ public class DroolsTCKTest
    }
 
    @Override
-   public List<URL> getTestCases()
-   {
-      List<URL> testCases = new ArrayList<>();
-      File cl2parent = new File("../../TestCases/compliance-level-2");
-      FilenameFilter filenameFilter = (dir, name) -> name.matches("\\d\\d\\d\\d-.*");
-      //        FilenameFilter filenameFilter = (dir, name) -> name.matches( "0031-.*" );
-      for (File file : cl2parent.listFiles(filenameFilter))
-      {
-         try
-         {
-            testCases.add(file.toURI().toURL());
-         }
-         catch (MalformedURLException e)
-         {
-            e.printStackTrace();
-         }
-      }
-      File cl3parent = new File("../../TestCases/compliance-level-3");
-      for (File file : cl3parent.listFiles(filenameFilter))
-      {
-         try
-         {
-            testCases.add(file.toURI().toURL());
-         }
-         catch (MalformedURLException e)
-         {
-            e.printStackTrace();
-         }
-      }
-      testCases.sort((x, y) -> x.toString().compareTo(y.toString()));
-      return testCases;
-   }
-
-   @Override
    public TestSuiteContext createContext()
    {
       logger.info("Creating context.");
@@ -225,12 +190,6 @@ public class DroolsTCKTest
          throw new RuntimeException("Unable to load model for URL '" + modelURL + "'");
       }
       ctx.dmnmodel = ctx.runtime.getModels().get(0);
-   }
-
-   @Override
-   public void beforeTest(Description description, TestSuiteContext context, TestCases.TestCase testCase)
-   {
-      // nothing to do
    }
 
    @Override
@@ -306,31 +265,7 @@ public class DroolsTCKTest
             logger.error("FAILURE: unnexpected exception executing test case '{} / {}'", description.getClassName(), description.getMethodName(), t);
          }
       }
-      //        DMNResult dmnResult = ctx.runtime.evaluateAll( ctx.dmnmodel, dmnctx );
       logger.info("Result context: {}\n", resultctx);
-      //        if( ! dmnResult.getMessages().isEmpty() ) {
-      //            logger.info( "Messages: \n-----\n{}-----\n", dmnResult.getMessages().stream().map( m -> m.toString() ).collect( Collectors.joining( "\n" ) ) );
-      //        }
-      //
-      //        List<String> failures = new ArrayList<>();
-      //        if( dmnResult.hasErrors() ) {
-      //            for( DMNMessage msg : dmnResult.getMessages( DMNMessage.Severity.ERROR ) ) {
-      //                failures.add( msg.toString() );
-      //            }
-      //        }
-      //        testCase.getResultNode().forEach( rn -> {
-      //            try {
-      //                String name = rn.getName();
-      //                Object expected = parseValue( rn, ctx.dmnmodel.getDecisionByName( name ) );
-      //                Object actual = resultctx.get( name );
-      //                if( ! isEquals( expected, actual ) ) {
-      //                    failures.add( "FAILURE: '"+name+"' expected='"+expected+"' but found='"+actual+"'" );
-      //                }
-      //            } catch ( Throwable t ) {
-      //                failures.add( "FAILURE: unnexpected exception executing test case '"+description.getClassName()+" / " +description.getMethodName()+"': "+t.getClass().getName() );
-      //                logger.error( "FAILURE: unnexpected exception executing test case '{} / {}'", description.getClassName(), description.getMethodName(), t );
-      //            }
-      //        } );
 
       TestResult.Result r = !failures.isEmpty() ? TestResult.Result.ERROR : TestResult.Result.SUCCESS;
       return new TestResult(r, failures.stream().collect(Collectors.joining("\n")));
@@ -395,27 +330,16 @@ public class DroolsTCKTest
       return expected.equals(actual);
    }
 
-   @Override
-   public void afterTest(Description description, TestSuiteContext context, TestCases.TestCase testCase)
-   {
-      // nothing to do
-   }
-
-   @Override
-   public void afterTestCase(TestSuiteContext context, TestCases testCases)
-   {
-      props.setProperty("last.update", ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-      try {
-         props.store(new FileOutputStream(propsFile), null);
-      } catch (IOException e) {
-         logger.warn("Exception while updating last update date", e);
-      }
-   }
-
-   @Override
-   public String getResultFileName() {
-      return "../../TestResults/Drools/" + props.getProperty("product.version") + "/tck_results.csv";
-   }
+    @Override
+    public ResultFiles getVendorResultFiles() {
+        return new ResultFiles(DroolsTCKUtils.getDroolsVersion(), 
+            "Drools", 
+            "https://www.drools.org", 
+            "Drools provides a compliance level 3 runtime DMN engine", 
+            "KIE", 
+            "https://www.kie.org",
+            "https://github.com/dmn-tck/tck/tree/master/runners/dmn-tck-runner-drools/README.md");
+    }
 
    protected DMNRuntime createRuntime(URL modelUrl, Collection<? extends URL> additionalModels)
    {

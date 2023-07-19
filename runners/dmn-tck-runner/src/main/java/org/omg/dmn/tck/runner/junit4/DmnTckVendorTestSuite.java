@@ -14,8 +14,14 @@
 
 package org.omg.dmn.tck.runner.junit4;
 
+import java.io.File;
+import java.io.UncheckedIOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.junit.runner.Description;
@@ -39,10 +45,31 @@ public interface DmnTckVendorTestSuite {
      * Returns a list of URI for all the test
      * case <b>FOLDERS</b> containing each individual
      * test.
+     * 
+     * Default implementation returns all test cases from compliance level 2 and 3. 
      *
-     * @return
+     * @return List of test cases that are run as part of the runner. 
      */
-    List<URL> getTestCases();
+    default List<URL> getTestCases() {
+        final File testsComplianceLevel2 = new File("../../TestCases/compliance-level-2");
+        final File testsComplianceLevel3 = new File("../../TestCases/compliance-level-3");
+
+        final List<URL> testCases = new ArrayList<>();
+        
+		try {
+            for (File file : testsComplianceLevel2.listFiles(File::isDirectory)) {
+                testCases.add(file.toURI().toURL());
+            }
+            for (File file : testsComplianceLevel3.listFiles(File::isDirectory)) {
+                testCases.add(file.toURI().toURL());
+            }
+		} catch (MalformedURLException e) {
+			throw new UncheckedIOException(e.getMessage(), e);
+		}
+
+        testCases.sort(Comparator.comparing(URL::getPath));
+        return testCases;
+    }
 
     /**
      * Creates a context object to share vendor specific
@@ -55,7 +82,9 @@ public interface DmnTckVendorTestSuite {
      *
      * @return
      */
-    TestSuiteContext createContext();
+    default TestSuiteContext createContext() {
+        return null;
+    }
 
     /**
      * A callback to give vendors an opportunity for initialization
@@ -69,7 +98,8 @@ public interface DmnTckVendorTestSuite {
      * @deprecated To support DMN features involving multiple models, see {@link #beforeTestCases(TestSuiteContext, TestCases, URL, List)}
      */
     @Deprecated
-    void beforeTestCases(TestSuiteContext context, TestCases testCases, URL modelURL );
+    default void beforeTestCases(TestSuiteContext context, TestCases testCases, URL modelURL ) {
+    }
 
     /**
      * A callback to give vendors an opportunity for initialization
@@ -94,7 +124,8 @@ public interface DmnTckVendorTestSuite {
      *                call.
      * @param testCase a single test case that will be executed next.
      */
-    void beforeTest(Description description, TestSuiteContext context, TestCases.TestCase testCase);
+    default void beforeTest(Description description, TestSuiteContext context, TestCases.TestCase testCase){
+    }
 
     /**
      * Executes a single test case and returns the result.
@@ -119,7 +150,8 @@ public interface DmnTckVendorTestSuite {
      *                call.
      * @param testCase a single test case that will be executed next.
      */
-    void afterTest(Description description, TestSuiteContext context, TestCases.TestCase testCase);
+    default void afterTest(Description description, TestSuiteContext context, TestCases.TestCase testCase){
+    }
 
     /**
      * A callback to give vendors an opportunity for clean up after a
@@ -130,18 +162,16 @@ public interface DmnTckVendorTestSuite {
      * @param testCases the parsed content of a test file.
      *
      */
-    void afterTestCase( TestSuiteContext context, TestCases testCases );
+    default void afterTestCase( TestSuiteContext context, TestCases testCases ) {
+    }
 
-	/**
-	 * Defines the filename where tck results are written to. Defaults to
-	 * 'result.csv'. Override to customize the file name or path. If a path is
-	 * returned, the directories must exist.
-	 * 
-	 * @return the result path. Defaults to 'result.csv'. Return {@code null} to
-	 *         disable result file creation.
-	 */
-	default String getResultFileName() {
-		return "tck_results.csv";
-	}
-
+    /**
+     * Defines the files representing the results of the TCK tests execution for a specific vendor. 
+     * Override to customize the different values of vendor specific result properties or results filenames. 
+     * 
+     * @return Instance of TckResultFiles filled with vendor specific information.
+     */
+    default ResultFiles getVendorResultFiles() {
+        return new ResultFiles("0.0.1", "DMN engine", "", "", "DMN vendor", "");
+    }
 }
